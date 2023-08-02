@@ -1,0 +1,43 @@
+version: '3.5'
+services:
+
+  db:
+    image: "postgres:15-alpine"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: changeMeASAP
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    volumes:
+      - ./sql/init:/docker-entrypoint-initdb.d
+      - dbdata:/var/lib/postgresql/data
+    command: [ "postgres", "-c", "log_min_duration_statement=50ms" ]
+
+  backend:
+    platform: linux/amd64
+    container_name: backend
+    image: nestjs-api-dev:1.0.0
+    build:
+      context: backend/
+      dockerfile: ./Dockerfile
+    ports:
+      - "3061:3061"
+    volumes:
+      - ./backend:/usr/src/app
+      - ./public/uploads:/usr/src/app/public/uploads # for upload files
+    networks:
+      - app-network
+    restart: unless-stopped
+
+
+
+#Docker Networks
+networks:
+  app-network:
+
+#Volumes
+volumes:
+  dbdata:
+  upload_dir:
